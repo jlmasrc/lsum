@@ -1,5 +1,5 @@
 # lsum
-C library for large floating point sums
+C library for large sums of floating point numbers with controlled round-off error.
 
 Features:
 * Online, non-recursive pairwise summation (cascade summation)
