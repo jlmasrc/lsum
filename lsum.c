@@ -23,10 +23,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-
-#ifdef DEBUG_ALLOC
 #include <stdio.h>
-#endif
 
 #include "lsum.h"
 
@@ -57,12 +54,18 @@ void psum_zero(psum *s) {
   psum_zero_tail(s, 0);
 }
 
-/* Realloc s->alloc expanding it by increasing elements */
+/* Realloc s->alloc expanding it by increasing elements. When summing
+   n numbers, ->alloc will have around log2(n) elements, so the
+   allocation size is small. */
 static void psum_expand(psum *s, int increase) {
   /* a->alloc == NULL indicates zero elements */
   int old_size = s->alloc ? (s->last - s->alloc + 1) : 0;
   int new_size = old_size + increase;
-  s->alloc = realloc(s->alloc, new_size * sizeof(*(s->alloc)));
+  if(!(s->alloc = realloc(s->alloc, new_size * sizeof(*(s->alloc))))) {
+    /* Very improbable, as the allocation size is small */
+    fprintf(stderr, "psum: out of memory\n");
+    exit(1);
+  }
   s->last = s->alloc + new_size - 1;
   psum_zero_tail(s, old_size); /* Initialize new memory */
 #ifdef DEBUG_ALLOC
