@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
 
   for(i = 1; i <= SIZE_BENCHMARK; i++) {
     double f = 1.0 / 3;
+    /* psum_add() is an inline function. If a compiled version is
+       needed, use lsum_cadd(). */
     psum_add(s, f);
   }
 

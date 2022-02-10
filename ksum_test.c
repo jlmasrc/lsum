@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
   ksum_zero(s);
   for(i = 1; i <= SIZE_BENCHMARK; i++) {
     double f = 1.0 / 3;
+    /* ksum_add() is an inline function. If a compiled version is
+       needed, use ksum_cadd(). */
     ksum_add(s, f);
   }
 
