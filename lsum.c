@@ -36,12 +36,6 @@ int psum_minsize = 20;
    10 allows 1024 times more summands than the previous allocation */
 int psum_increase = 10;
 
-typedef struct psum {
-  /* Alloc: array dynamically allocated; last: points to last element
-     of array pointed by alloc */
-  double *alloc, *last;
-} psum;
-
 /* Zero all elements of s->alloc starting from s->alloc[tail] */
 static void psum_zero_tail(psum *s, int tail) {
   double *a = s->alloc + tail;
@@ -89,15 +83,9 @@ void psum_free(psum *s) {
   free(s);
 }
 
-/* Add x to s. If s->alloc[] is exhausted, realloc it with psum_expand() */
-void psum_add(psum *s, double x) {
-  double *a = s->alloc;
-
-  /* Unroll some loops to avoid frequent boundary checks */
-  if(*a) { x += *a; *(a++) = 0; } else { *a = x; return; }
-  if(*a) { x += *a; *(a++) = 0; } else { *a = x; return; }
-  if(*a) { x += *a; *(a++) = 0; } else { *a = x; return; }
-
+/* Continue psum_add()'s job. If s->alloc[] is exhausted, realloc it
+   with psum_expand() */
+void psum_loop_(psum *s, double *a, double x) {
   while(*a) {
     x += *a;
     *(a++) = 0;
@@ -107,6 +95,11 @@ void psum_add(psum *s, double x) {
   /* Boundary check. If psum_increase was redefined to a value too
      small, ignore it */
   if(a == s->last) psum_expand(s, psum_increase < 1 ? 1 : psum_increase);
+}
+
+/* Compiled version of psum_add() */
+void psum_cadd(psum *s, double x) {
+  psum_add(s, x);
 }
 
 /* Return the value stored in s. */
@@ -127,24 +120,9 @@ void ksum_zero(ksum s) {
   s[1] = 0;
 }
 
-/* Add x to s
-   s[0]: Main value
-   s[1]: Compensation */
-void ksum_add(ksum s, double x) {
-  double s0 = s[0];
-  volatile double t = s0 + x;
-
-  /* Neumaier improvement of Kahan summation
-     https://en.wikipedia.org/wiki/Kahan_summation_algorithm */
-  if(fabs(s0) >= fabs(x)) {
-    volatile double y = s0 - t;
-    s[1] += y + x;
-  } else {
-    volatile double y = x - t;
-    s[1] += y + s0;
-  }
-    
-  s[0] = t;
+/* Compiled version of ksum_add() */
+void ksum_cadd(ksum s, double x) {
+  ksum_add(s, x);
 }
 
 /* Returns the value stored in s */
