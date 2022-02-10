@@ -75,7 +75,8 @@ psum *psum_alloc(void) {
   psum *s = malloc(sizeof(*s));
   /* Indicates zero elements to psum_expand; s->last is undefined. */
   s->alloc = NULL;
-  psum_expand(s, psum_minsize);
+  /* If psum_minsize was redefined to a value too small, ignore it */
+  psum_expand(s, psum_minsize < 10 ? 10 : psum_minsize);
   return s;
 }
 
@@ -100,8 +101,9 @@ void psum_add(psum *s, double x) {
   }
   *a = x;
 
-  /* Boundary check */
-  if(a == s->last) psum_expand(s, psum_increase);
+  /* Boundary check. If psum_increase was redefined to a value too
+     small, ignore it */
+  if(a == s->last) psum_expand(s, psum_increase < 1 ? 1 : psum_increase);
 }
 
 /* Return the value stored in s. */
