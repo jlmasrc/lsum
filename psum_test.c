@@ -2,6 +2,8 @@
   lsum: C library for large floating point sums.
   Test function for pairwise summation.
   It is faster that Kahan summation but uses more memory.
+  When summing n numbers, pairwise summation will alloc sizeof(double)*log2(n)
+  bytes, so the allocation size is still small.
   Theoretically, Kahan summation could exhaust precision while pairwise
   summation would stay precise. 
 
